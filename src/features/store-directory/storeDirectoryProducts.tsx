@@ -1,20 +1,25 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { TopNavbar } from "../../component/topNavbar";
 import { SendMessageModal } from "./modal/sendMessageModal";
 import { VerifyStoreModal } from "./modal/verifyStoreModal";
 import { SuspendStoreModal } from "./modal/suspendStoreModal";
 import { StoreQuickActions } from "./utils/StoreQuickActions";
 import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
 import { fetchStoreProduct, fetchStoreById } from "./storeDirectory";
+import { useStoreActions } from "../../hook/useStoreActions";
 
 export const StoreDirectoryProducts = () => {
   const { storeId } = useParams();
   const {products, store, isFetchingOne, error} = useAppSelector((state)=> state.stores)
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
-  const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
+  const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);  
+  const { handleVerify, handleSuspend, handleSendMessage } =
+    useStoreActions(store?.id);
+
+  if (!store) return <p>Store not found</p>;
 
   useEffect(()=>{
     if(storeId){
@@ -23,16 +28,12 @@ export const StoreDirectoryProducts = () => {
     }
 
   }, [dispatch, storeId])
-
-  if (isFetchingOne) return <p>Loading products...</p>;
   
   if (error) return <p>{error}</p>;
   
   return (
     <section className="space-y-4">
-      <TopNavbar searchPlaceholder="Search this store..." />
-
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500" onClick={()=> navigate("/dashboard/store-directory")}>
         Store Directory <span className="mx-1">/</span> <span className="text-slate-700">{store?.name} Lagos</span>
       </p>
 
@@ -63,7 +64,7 @@ export const StoreDirectoryProducts = () => {
               Orders
             </Link>
           </div>
-
+          {isFetchingOne ? <p>Loading....</p> : (
           <div className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3">
             {Array.isArray(products) && products.length > 0 ? products.map((product) => (
               <article key={product.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
@@ -94,6 +95,7 @@ export const StoreDirectoryProducts = () => {
               </article>
             )): "no product available"}
           </div>
+          )}
         </article>
 
         <StoreQuickActions
@@ -108,18 +110,22 @@ export const StoreDirectoryProducts = () => {
         onClose={() => setIsMessageModalOpen(false)}
         storeName="Fashion Hub Lagos"
         storeHandle="@fashionhub"
+        onSendMessage={handleSendMessage}
       />
       <VerifyStoreModal
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}
         storeName="Fashion Hub Lagos"
         storeHandle="@fashionhub"
+        isActive={store?.isActive}
+        onVerify={handleVerify}
       />
       <SuspendStoreModal
         isOpen={isSuspendModalOpen}
         onClose={() => setIsSuspendModalOpen(false)}
         storeName="Fashion Hub Lagos"
         storeHandle="@fashionhub"
+        onSuspend={handleSuspend}
       />
     </section>
   );

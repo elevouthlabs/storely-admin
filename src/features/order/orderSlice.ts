@@ -38,7 +38,7 @@ export const fetchOrders = createAsyncThunk<
       }).toString();
 
       const res = await fetch(
-        `http://localhost:5000/api/orders?${query}`,
+        `${import.meta.env.VITE_API_URL}/admin/orders-all?${query}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -70,7 +70,7 @@ export const fetchOrderById = createAsyncThunk<
       const token = getState().auth.token;
 
       const res = await fetch(
-        `http://localhost:5000/api/orders/${orderId}`,
+        `${import.meta.env.VITE_API_URL}/admin/orders/${orderId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -79,6 +79,9 @@ export const fetchOrderById = createAsyncThunk<
       );
 
       const data: SingleOrderResponse = await res.json();
+
+      console.log(data);
+      
 
       if (!res.ok) {
         return rejectWithValue(data.message);
@@ -102,7 +105,7 @@ export const updateOrderStatus = createAsyncThunk<
       const token = getState().auth.token;
 
       const res = await fetch(
-        `http://localhost:5000/api/orders/${orderId}/status`,
+        `${import.meta.env.VITE_API_URL}/orders/${orderId}/status`,
         {
           method: "PATCH",
           headers: {

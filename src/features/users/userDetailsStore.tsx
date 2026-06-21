@@ -1,10 +1,16 @@
 import { Link, useParams } from "react-router-dom";
-import { TopNavbar } from "../../component/topNavbar";
-import { UserQuickActions } from "./utils/UserQuickActions";
-import { useEffect } from "react";
+import { UserQuickActions } from "./sidepanel/UserQuickActions";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
 import { fetchUserById } from "./userSlice";
+import { useUserActions } from "../../hook/useUserActions";
 import { Icon } from "@iconify/react";
+import { BanAccount } from "./modal/banAccount";
+import { WarnAccount } from "./modal/warnAccount";
+import { Reset2fa } from "./modal/reser2fa";
+import { SendMessage } from "./modal/sendMessage";
+import { PasswordReset } from "./modal/passwordReset";
+import { DowngradePlan } from "./modal/downgrdePlan";
 
 // type OwnedStore = {
 //   id: string;
@@ -32,10 +38,19 @@ import { Icon } from "@iconify/react";
 
 export const UserDetailsStore = () => {
   const dispatch = useAppDispatch();
+  const [ban, setBan] = useState(false);
+  const [warn, setWarn] = useState(false);
+  const [reset, setReset] = useState(false);
+  const [message, setMessage] = useState(false);
+  const [password, setPassword] = useState(false)
+  const [plan, setPlan] = useState(false)
 
   const { user, isFetchingOne, error } = useAppSelector(
     (state) => state.users
   );
+  const { handleBan, 
+    handleWarn, 
+    handleSendMessage, handleForcePassword, handleChangePlan} = useUserActions(user?.id)
 
   const { userId } = useParams();
 
@@ -54,7 +69,6 @@ export const UserDetailsStore = () => {
 
   return (
     <section className="space-y-4 font-sans">
-      <TopNavbar searchPlaceholder="Type to search..." />
 
       <p className="text-[11px] text-[#878293]">
         &lt; User Accounts / <span className="font-medium text-[#484056]">{user.fullName}</span>
@@ -130,8 +144,53 @@ export const UserDetailsStore = () => {
           </div>
         </div>
 
-        <UserQuickActions />
+        <UserQuickActions 
+          actions={{
+            ban: () => setBan(true),
+            warn: () => setWarn(true),
+            reset: () => setReset(true),
+            message: () => setMessage(true),
+            password: () => setPassword(true),
+            plan: () => setPlan(true),
+          }}
+        />
       </div>
+      <BanAccount 
+        isOpen={ban} 
+        onClose={()=> setBan(false)} 
+        fullName={user.fullName}
+        email={user.email}
+        onBan={handleBan}
+        />
+      <WarnAccount
+        isOpen={warn}
+        onClose={()=> setWarn(false)}
+        fullName={user.fullName}
+        email={user.email} 
+        onWarn={handleWarn}
+        />
+      <Reset2fa isOpen={reset} onClose={()=> setReset(false)} fullName={user.fullName}
+        email={user.email} />
+      <SendMessage 
+      isOpen={message} 
+      onClose={()=> setMessage(false)} 
+      fullName={user.fullName}
+      email={user.email} 
+      onSendMessage={handleSendMessage}
+      />
+      <PasswordReset 
+      isOpen={password} 
+      onClose={()=> setPassword(false)} 
+      fullName={user.fullName}
+      email={user.email} 
+      onForcePassword={handleForcePassword}
+      />
+      <DowngradePlan 
+        isOpen={plan} 
+        onClose={()=> setPlan(false)} 
+        fullName={user.fullName}
+        onChangePlan={handleChangePlan}
+        />  
     </section>
   );
 };

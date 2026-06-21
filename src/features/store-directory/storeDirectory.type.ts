@@ -11,6 +11,7 @@ export type StoreDirectory = {
   orders:{ count: string };
   business: {slug: string}
   createdAt: string;
+  isActive: boolean;
 };
 
 export type StoreProduct = {

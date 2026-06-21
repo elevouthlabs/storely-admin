@@ -80,7 +80,7 @@ useEffect(() => {
           <div className="rounded-md px-3 py-2.5 bg-purple-200">
             <p className="text-[11px] leading-relaxed text-slate-600">
               <span className="font-medium text-slate-700">
-                Grace period will be extended by 7 days from the current end date
+                Grace period will be extended by {grace ? grace : 0} days from the current end date
               </span>
             </p>
           </div>

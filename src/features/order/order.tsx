@@ -1,72 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
+import { fetchOrders } from "./orderSlice";
 import { Icon } from "@iconify/react";
+import { DateFormatter } from "../store-directory/utils/formatMoney";
 
 type OrderStatus = "Fulfilled" | "Processing" | "Pending" | "Disputed";
 
-type OrderRow = {
-  id: string;
-  store: string;
-  buyer: string;
-  amount: string;
-  status: OrderStatus;
-  date: string;
-  payment: string;
-};
-
-const summaryStats = [
-  { label: "Total Orders", value: "12,847" },
-  { label: "Total Value", value: "₦124.5M" },
-  { label: "Refund Rate", value: "2.4%" },
-] as const;
-
-const orderRows: OrderRow[] = [
-  {
-    id: "ORD-4821",
-    store: "Fashion Hub Lagos",
-    buyer: "Chioma Eze",
-    amount: "₦45,000",
-    status: "Fulfilled",
-    date: "Apr 18, 2026",
-    payment: "Paystack",
-  },
-  {
-    id: "ORD-4820",
-    store: "Metro Fresh Mart",
-    buyer: "Tunde Bakare",
-    amount: "₦28,500",
-    status: "Processing",
-    date: "Apr 18, 2026",
-    payment: "Flutterwave",
-  },
-  {
-    id: "ORD-4819",
-    store: "Beauty Cart NG",
-    buyer: "Adaobi Nwosu",
-    amount: "₦12,800",
-    status: "Pending",
-    date: "Apr 17, 2026",
-    payment: "Paystack",
-  },
-  {
-    id: "ORD-4818",
-    store: "Techie Plaza",
-    buyer: "Emeka Okafor",
-    amount: "₦156,000",
-    status: "Disputed",
-    date: "Apr 17, 2026",
-    payment: "Flutterwave",
-  },
-  {
-    id: "ORD-4817",
-    store: "Home Spot",
-    buyer: "Fatima Yusuf",
-    amount: "₦67,200",
-    status: "Fulfilled",
-    date: "Apr 16, 2026",
-    payment: "Paystack",
-  },
-];
 
 const statusOptions = ["All Status", "Fulfilled", "Processing", "Pending", "Disputed"] as const;
 
@@ -79,20 +19,40 @@ const statusBadgeClass: Record<OrderStatus, string> = {
 
 const tableHeadings = ["Order ID", "Store", "Buyer", "Amount", "Status", "Date", "Payment"] as const;
 
-export const Order = () => {
+const Order = () => {
   const [statusFilter, setStatusFilter] = useState<(typeof statusOptions)[number]>("All Status");
   const [searchQuery, setSearchQuery] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const { orders, isLoading, error } = useAppSelector((state) => state.orders);
+  const token = useAppSelector((state) => state.auth.token);
   const navigate = useNavigate();
+  const dispatch = useAppDispatch()
+  const summaryStats = [
+  { label: "Total Orders", value: orders.length },
+  { label: "Total Value", value: "₦"+orders[0]?.totalAmount },
+  { label: "Refund Rate", value: "2.4%" },
+] as const;
 
-  const filteredRows = orderRows.filter((row) => {
+    useEffect(() => {
+      if (token) {
+        dispatch(fetchOrders({ page: 1, limit: 10 }));
+      }
+    }, [dispatch, token]);
+    
+    console.log(orders);
+    
+     
+    if (isLoading) return <p>Loading orders...</p>;
+    if (error) return <p>Error: {error}</p>;
+
+  const filteredRows = orders.filter((row) => {
     const matchesStatus = statusFilter === "All Status" || row.status === statusFilter;
     const query = searchQuery.trim().toLowerCase();
     const matchesSearch =
       !query ||
       row.id.toLowerCase().includes(query) ||
-      row.store.toLowerCase().includes(query) ||
-      row.buyer.toLowerCase().includes(query);
+      // row.store.toLowerCase().includes(query) ||
+      row.customerName.toLowerCase().includes(query);
     return matchesStatus && matchesSearch;
   });
 
@@ -176,10 +136,13 @@ export const Order = () => {
                 className="border-b border-slate-100 last:border-none cursor-pointer">
                   <td className="px-3 py-3.5 first:pl-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-slate-800">{row.id}</span>
+                      <span className="font-medium text-slate-800">{row.id.slice(0,8)}</span>
                       <button
                         type="button"
-                        onClick={() => handleCopy(row.id)}
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                          e.stopPropagation();
+                          handleCopy(row.id)
+                        }}
                         className="rounded p-0.5 hover:bg-slate-100"
                         aria-label={`Copy ${row.id}`}
                         title={copiedId === row.id ? "Copied" : "Copy order ID"}
@@ -188,18 +151,18 @@ export const Order = () => {
                       </button>
                     </div>
                   </td>
-                  <td className="px-3 py-3.5 text-slate-700">{row.store}</td>
-                  <td className="px-3 py-3.5 text-slate-700">{row.buyer}</td>
-                  <td className="px-3 py-3.5 font-medium text-slate-800">{row.amount}</td>
+                  <td className="px-3 py-3.5 text-slate-700">Rufftech</td>
+                  <td className="px-3 py-3.5 text-slate-700">{row.customerName}</td>
+                  <td className="px-3 py-3.5 font-medium text-slate-800">{"₦"+row.totalAmount}</td>
                   <td className="px-3 py-3.5">
-                    <span
+                    {/* <span
                       className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusBadgeClass[row.status]}`}
                     >
                       {row.status}
-                    </span>
+                    </span> */}
                   </td>
-                  <td className="px-3 py-3.5 text-slate-600">{row.date}</td>
-                  <td className="px-3 py-3.5 text-slate-600">{row.payment}</td>
+                  <td className="px-3 py-3.5 text-slate-600">{DateFormatter(row.createdAt)}</td>
+                  {/* <td className="px-3 py-3.5 text-slate-600">{row.payment}</td> */}
                 </tr>
               ))}
             </tbody>
@@ -230,3 +193,5 @@ export const Order = () => {
     </section>
   );
 };
+
+export default Order;

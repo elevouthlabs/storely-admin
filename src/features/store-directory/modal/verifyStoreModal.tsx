@@ -1,8 +1,11 @@
 type VerifyStoreModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  storeName: string;
-  storeHandle: string;
+  storeName: string |undefined;
+  storeHandle: string |undefined;
+  isActive: boolean;
+
+  onVerify: () => Promise<void>;
 };
 
 const checks = [
@@ -12,7 +15,7 @@ const checks = [
   "Product authenticity confirmed",
 ];
 
-export const VerifyStoreModal = ({ isOpen, onClose, storeName, storeHandle }: VerifyStoreModalProps) => {
+export const VerifyStoreModal = ({ isOpen, onClose, storeName, storeHandle, onVerify, isActive }: VerifyStoreModalProps) => {
   if (!isOpen) return null;
 
   return (
@@ -34,7 +37,7 @@ export const VerifyStoreModal = ({ isOpen, onClose, storeName, storeHandle }: Ve
           <div className="space-y-3 px-4 py-3">
             <div className="rounded-md bg-slate-50 px-2.5 py-2">
               <p className="text-sm font-medium text-slate-800">{storeName}</p>
-              <p className="text-[11px] text-slate-400">{storeHandle}</p>
+              <p className="text-[11px] text-slate-400">{"@"+storeHandle}</p>
             </div>
 
             <div className="rounded-md border border-violet-100 bg-violet-50 px-3 py-2">
@@ -65,8 +68,20 @@ export const VerifyStoreModal = ({ isOpen, onClose, storeName, storeHandle }: Ve
             >
               Cancel
             </button>
-            <button type="button" className="h-7 w-1/2 rounded-md bg-violet-700 px-7 text-[11px] font-semibold text-white hover:bg-violet-800">
-              Verify Store
+            <button
+              type="button"
+              onClick={async () => {
+                if (isActive) return;
+                await onVerify();
+              }}
+              disabled={isActive}
+              className={`h-7 w-1/2 rounded-md px-7 text-[11px] font-semibold text-white ${
+                isActive
+                  ? "bg-slate-300 cursor-not-allowed"
+                  : "bg-violet-700 hover:bg-violet-800"
+              }`}
+            >
+              {isActive ? "Already Verified" : "Verify Store"}
             </button>
           </div>
         </div>

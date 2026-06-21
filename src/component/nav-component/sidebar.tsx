@@ -27,6 +27,7 @@ const topItems: SidebarItem[] = [
 export const Sidebar = () => {
   const { logout } = useLogout();
   const { user } = useAppSelector((state) => state.auth);
+  
   const layout = useSidebarLayoutOptional();
 
   const initials =
@@ -42,7 +43,7 @@ export const Sidebar = () => {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-[250px] max-w-full flex-col">
+    <div className="flex h-full w-[250px] max-w-full flex-col">
       <header className="shrink-0 pb-4 !px-0 !py-0">
         <img src={storely} alt="Storely" />
         {/* className="h-auto w-full max-w-[140px] object-contain sm:max-w-[160px]" */}

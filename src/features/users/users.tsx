@@ -18,14 +18,17 @@ export const UserManagement = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();  
   const initials = users?.map((user) => {
-    const names = user?.business?.name?.split(" ") || [];
+  const names = user?.business?.name?.split(" ") || [];
     return names.map((name) => name[0]).join(""); 
   }) || [];
+
+  console.log(users);
+  
  
     useEffect(() => {
-        if (token) {
-            dispatch(fetchUsers({ page: 1, limit: 10 }));
-        }
+      if (token) {
+          dispatch(fetchUsers({ page: 1, limit: 10 }));
+      }
     }, [dispatch, token]);
     
 
@@ -80,7 +83,7 @@ export const UserManagement = () => {
                 className="border-b border-slate-100 last:border-none cursor-pointer">
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-700 text-xs font-semibold text-white">
+                      <div className="flex h-7 w-7 items-center justify-center uppercase rounded-full bg-emerald-700 text-xs font-semibold text-white">
                         {initials[index] || ''}
                       </div>
                       <div>
