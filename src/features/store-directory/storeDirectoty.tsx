@@ -1,7 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { fetchStores } from "./storeDirectory";
+import { fetchOrders } from "../order/orderSlice";
 import { Icon } from "@iconify/react";
 
 // const planBadge = (plan: StoreRow["plan"]) => {
@@ -18,15 +19,52 @@ import { Icon } from "@iconify/react";
 
 export const StoreDirectory = () => {
   const {stores, isLoading, error} = useAppSelector((state)=> state.stores)
-  const token = useAppSelector((state)=> state.users)
+  const {orders} = useAppSelector((state)=> state.orders)
+  const token = useAppSelector((state) => state.auth.token);
   const dispatch =useAppDispatch()
-  const navigate = useNavigate()
+  const navigate = useNavigate() 
+  
+  console.log(stores, orders);
+  
+useEffect(() => {
+  if (!token) return;
 
-   useEffect(() => {
-      if (token) {
-          dispatch(fetchStores({ page: 1, limit: 10 }));
-      }
+  const load = async () => {
+    await Promise.all([
+      dispatch(fetchStores({ page: 1, limit: 10 })),
+      dispatch(fetchOrders({ page: 1, limit: 10 })),
+        ]);
+      };
+
+      load();
     }, [dispatch, token]);
+
+  const ordersByStore = useMemo(() => {
+    return orders.reduce((acc, order) => {
+      const storeId = order.businessId;
+
+      if (!storeId) return acc;
+
+      if (!acc[storeId]) {
+        acc[storeId] = [];
+      }
+
+      acc[storeId].push(order);
+
+      return acc;
+    }, {} as Record<string, typeof orders>);
+  }, [orders]);
+
+  const gmvByStore = useMemo(() => {
+    return orders.reduce((acc, order) => {
+      const storeId = order.businessId;
+      if (!storeId) return acc;
+
+      acc[storeId] = (acc[storeId] || 0) + Number(order.totalAmount);
+
+      return acc;
+    }, {} as Record<string, number>);
+  }, [orders]);
 
      if (isLoading) return <p>Loading stores...</p>;
      if (error) return <p>Error: {error}</p>;
@@ -86,18 +124,18 @@ export const StoreDirectory = () => {
                   .map((word) => word[0])
                   .join("")
                   .toUpperCase();
-                
+                 
                 return (
                 <tr key={store.id}
                 onClick={()=> navigate(`/dashboard/store-directory/${store.id}`)}
                  className="border-b border-slate-100 last:border-none">
                   <td className="px-3 py-3">
-                    <input type="checkbox" />
+                    <input type="checkbox" onClick={(e)=> e.stopPropagation()}/>
                   </td>
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-2">
                       {/* <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-white ${store.color}`}> */}
-                      <div className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-white bg-purple-400`}>
+                      <div className={`flex h-7 w-7 items-center justify-center uppercase rounded-full text-xs font-semibold text-white bg-purple-400`}>
                         {initials}
                       </div>
                       <div>
@@ -116,8 +154,8 @@ export const StoreDirectory = () => {
                     {/* <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusBadge(store.status)}`}>{store.status}</span> */}
                     <span className={`rounded-full px-2 py-1 text-xs font-medium bg-emerald-100 text-emerald-700`}>Active</span>
                   </td>
-                  <td className="px-3 py-3 text-slate-700">100000</td>
-                  <td className="px-3 py-3 text-slate-700">14</td>
+                  <td className="px-3 py-3 text-slate-700">₦{gmvByStore[store.id] ?? 0}</td>
+                  <td className="px-3 py-3 text-slate-700">{ordersByStore[store.id]?.length ?? 0}</td>
                   <td className="px-3 py-3 text-slate-700">{new Date(store.createdAt).toLocaleDateString()}</td>
                   <td className="px-3 py-3">
                     <div className="flex justify-end">

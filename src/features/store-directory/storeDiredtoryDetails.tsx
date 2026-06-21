@@ -1,39 +1,51 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { TopNavbar } from "../../component/topNavbar";
 import { SendMessageModal } from "./modal/sendMessageModal";
 import { VerifyStoreModal } from "./modal/verifyStoreModal";
 import { SuspendStoreModal } from "./modal/suspendStoreModal";
 import { StoreQuickActions } from "./utils/StoreQuickActions";
 import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
-import { fetchStoreById } from "./storeDirectory";
+import { fetchStoreById, fetchStoreOrders } from "./storeDirectory";
+import { FormatGMV, DateFormatter } from "./utils/formatMoney";
+import { useStoreActions } from "../../hook/useStoreActions";
 
 export const StoreDirectoryDetails = () => {
   const { storeId } = useParams();
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
+  const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const {store, isFetchingOne, error} = useAppSelector((state)=> state.stores)
-
+  const {store, orders, isFetchingOne, error} = useAppSelector((state)=> state.stores)
+   const { handleVerify, handleSuspend, handleSendMessage } =
+  useStoreActions(storeId);
+  
   
     useEffect(() => {
     if (storeId) {
       dispatch(fetchStoreById(storeId));
+      dispatch(fetchStoreOrders(storeId))
       }
     }, [dispatch, storeId]);
+
+    console.log(store);
+    
+
+    const totalRevenue = orders.reduce((acc, order) => {
+      return acc + Number(order.totalAmount);
+    }, 0);
   
     if (isFetchingOne) return <p>Loading user...</p>;
   
     if (error) return <p>{error}</p>;
   
-    if (!store) return <p>Store not found</p>;
+    if (!storeId) return <p>Store not found</p>;
+    if (!store) return 
     
   return (
     <section className="space-y-4">
-      <TopNavbar searchPlaceholder="Search this store..." />
-      <p className="text-sm text-slate-500">
-        Store Directory <span className="mx-1">/</span> <span className="text-slate-700">{store.name} Lagos</span>
+      <p className="text-sm text-slate-500" onClick={()=> navigate("/dashboard/store-directory")}>
+        Store Directory <span className="mx-1">/</span> <span className="text-slate-700">{store?.name} Lagos</span>
       </p>
 
       <article className="rounded-xl bg-[linear-gradient(90deg,#1D4ED8,#7C3AED,#A21CAF)] p-4 text-white shadow-sm">
@@ -41,11 +53,11 @@ export const StoreDirectoryDetails = () => {
           <div className="flex items-center gap-3">
             <img
             src={store?.logoUrl}
-            alt={store.name}
+            alt={store?.name}
             className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/90 text-2xl" />
             <div>
-              <h1 className="text-4xl font-semibold leading-tight">{store.name} Lagos</h1>
-              <p className="text-sm text-white/85">{"@"+store.slug}</p>
+              <h1 className="text-4xl font-semibold leading-tight">{store?.name} Lagos</h1>
+              <p className="text-sm text-white/85">{"@"+store?.slug}</p>
               <Link to="/store-directory" className="mt-1 inline-block text-sm text-white underline underline-offset-2">
                 View live store →
               </Link>
@@ -71,26 +83,26 @@ export const StoreDirectoryDetails = () => {
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-500">GMV</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">N2.4M</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{FormatGMV(totalRevenue)}</p>
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Total Orders</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">1247</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{orders?.length || 0}</p>
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Member Since</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">{new Date(store.createdAt).toLocaleDateString()}</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{DateFormatter(store?.createdAt)}</p>
               </div>
             </div>
 
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Store Description</h2>
               <p className="mt-1 max-w-2xl text-sm text-slate-600">
-                {store.description || "n/a"}
+                {store?.description || "n/a"}
               </p>
               <h3 className="mt-3 text-sm font-semibold text-slate-700">Category</h3>
               <span className="mt-1 inline-flex rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-700">
-                {store.category || "n/a"}
+                {store?.category || "n/a"}
               </span>
             </div>
 
@@ -128,21 +140,26 @@ export const StoreDirectoryDetails = () => {
       <SendMessageModal
         isOpen={isMessageModalOpen}
         onClose={() => setIsMessageModalOpen(false)}
-        storeName="Fashion Hub Lagos"
-        storeHandle="@fashionhub"
+        storeName={store?.name}
+        storeHandle={store?.slug}
+        onSendMessage={handleSendMessage}
       />
       <VerifyStoreModal
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}
-        storeName="Fashion Hub Lagos"
-        storeHandle="@fashionhub"
+        storeName={store?.name}
+        storeHandle={store?.slug}
+        isActive ={store?.isActive}
+        onVerify={handleVerify}
       />
       <SuspendStoreModal
         isOpen={isSuspendModalOpen}
         onClose={() => setIsSuspendModalOpen(false)}
-        storeName="Fashion Hub Lagos"
-        storeHandle="@fashionhub"
+        storeName={store?.name}
+        storeHandle={store?.slug}
+         onSuspend={handleSuspend}
       />
     </section>
   );
 };
+

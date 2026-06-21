@@ -3,21 +3,44 @@ import { useMemo, useState } from "react";
 type SendMessageModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  storeName: string;
-  storeHandle: string;
+  storeName: string | undefined;
+  storeHandle: string |undefined;
+
+  onSendMessage: (
+  subject: string,
+  message: string
+) => Promise<void>;
 };
 
-export const SendMessageModal = ({ isOpen, onClose, storeName, storeHandle }: SendMessageModalProps) => {
-  const [template, setTemplate] = useState("");
+export const SendMessageModal = ({ isOpen, onClose, storeName, storeHandle, onSendMessage }: SendMessageModalProps) => {
+
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const isSendEnabled = useMemo(() => {
-    return template.trim().length > 0 && subject.trim().length > 0 && message.trim().length > 0;
-  }, [template, subject, message]);
+    return  subject.trim().length > 0 && message.trim().length > 0;
+  }, [subject, message]);
 
   const handleClose = () => {
     onClose();
+  };
+
+  const handleSendMessage = async () => {
+  
+    try {
+      setSubmitting(true);
+
+      await onSendMessage( subject, message);
+
+      setSubject("");
+      setMessage("");
+   
+
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -41,10 +64,10 @@ export const SendMessageModal = ({ isOpen, onClose, storeName, storeHandle }: Se
           <div className="space-y-3 px-4 py-3">
             <div className="rounded-md bg-slate-50 px-2.5 py-2">
               <p className="text-sm font-medium text-slate-800">{storeName}</p>
-              <p className="text-[11px] text-slate-400">{storeHandle}</p>
+              <p className="text-[11px] text-slate-400">{"@"+storeHandle}</p>
             </div>
 
-            <div>
+            {/* <div>
               <label className="mb-1 block text-[11px] font-medium text-slate-600">Use a template (optional)</label>
               <select
                 value={template}
@@ -56,7 +79,7 @@ export const SendMessageModal = ({ isOpen, onClose, storeName, storeHandle }: Se
                 <option value="Inventory warning">Inventory warning</option>
                 <option value="Compliance reminder">Compliance reminder</option>
               </select>
-            </div>
+            </div> */}
 
             <div>
               <label className="mb-1 block text-[11px] font-medium text-slate-600">Subject *</label>
@@ -91,13 +114,15 @@ export const SendMessageModal = ({ isOpen, onClose, storeName, storeHandle }: Se
               Cancel
             </button>
             <button
+              onClick={handleSendMessage}
               type="button"
               className={`h-7 w-1/2 rounded-md px-7 text-[11px] font-semibold text-white ${
-                isSendEnabled ? "bg-violet-700 hover:bg-violet-800" : "cursor-not-allowed bg-violet-300"
+                isSendEnabled ?  "bg-[#4B0082] hover:opacity-95"
+                    : "bg-[#4B0082] opacity-50 cursor-not-allowed"
               }`}
               disabled={!isSendEnabled}
             >
-              Send Message
+              {submitting ? "Sending Message..." :  "Send Message"}
             </button>
           </div>
         </div>

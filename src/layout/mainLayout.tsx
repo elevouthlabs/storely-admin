@@ -7,7 +7,7 @@ const MainLayoutShell = () => {
   const { isOpen, isMobile, close } = useSidebarLayout();
 
   return (
-    <div className="relative flex h-screen overflow-hidden bg-slate-100">
+    <div className="relative flex min-h-screen overflow-hidden bg-[#f5f5f5]">
       {isMobile && isOpen ? (
         <button
           type="button"
@@ -19,7 +19,7 @@ const MainLayoutShell = () => {
 
       <aside
         className={[
-          "z-50 flex h-full shrink-0 flex-col overflow-hidden bg-[#2D1B4E] text-white transition-[width,transform] duration-300 ease-in-out",
+          "z-50 flex min-h-full shrink-0 flex-col justify-between overflow-hidden bg-[#2D1B4E] text-white transition-[width,transform] duration-300 ease-in-out",
           isMobile
             ? "fixed inset-y-0 left-0 w-[min(280px,85vw)] shadow-xl"
             : "relative",

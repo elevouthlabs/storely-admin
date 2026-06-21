@@ -10,4 +10,6 @@ export type AuthState = {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  pendingUserId: string | null;
+  pendingEmail: string | null;
 };

@@ -130,6 +130,236 @@ export const fetchSessionById = createAsyncThunk<
   }
 );
 
+export const banUSer = createAsyncThunk(
+  "user/ban",
+  async (
+     {
+      userId,
+      reason,
+      noteToSeller
+    }: {
+      userId: string;
+      reason: string;
+      noteToSeller: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const token = (getState() as RootState).auth.token;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/users/ban/${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+           body: JSON.stringify({
+            reason,
+            noteToSeller
+          }),
+        }
+      );
+  
+      const data = await res.json();
+      console.log(data);
+
+      if (!res.ok) {
+        return rejectWithValue(
+          data.message || "Failed to ban user"
+        );
+      }
+
+      return data;
+    } catch(error) {
+      return rejectWithValue("Failed to ban user");
+    }
+  }
+);
+
+export const warnUser = createAsyncThunk(
+  "user/warn-user",
+  async (
+     {
+      userId,
+      message,
+    }: {
+      userId: string;
+      message: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const token = (getState() as RootState).auth.token;
+
+      const res = await fetch(
+         `${import.meta.env.VITE_API_URL}/admin/users/warn/${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({message})
+        }
+      );
+
+      const data = await res.json();
+      console.log(data);
+      
+
+      if (!res.ok) {
+        return rejectWithValue(
+          data.message || "Failed to warn user"
+        );
+      }
+
+      return data;
+    } catch(error) {
+      console.error(error)
+      return rejectWithValue("Failed to warn user");
+    }
+  }
+);
+
+export const sendMessage = createAsyncThunk(
+  "user/send-message",
+  async (
+    {
+      userId,
+      subject,
+      message
+    }: {
+      userId: string;
+      subject: string;
+      message: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.auth.token;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/users/send-message/${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            subject,
+            message
+          }),
+        }
+      );
+
+      const data = await res.json();
+      console.log(data);
+      
+
+      if (!res.ok) {
+      return rejectWithValue(data.message || "Failed to message to user");
+    }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue("Failed to send message to user");
+    }
+  }
+);
+export const forcePassword = createAsyncThunk(
+  "user/force-password",
+  async (
+    {
+      userId,
+      reason
+    }: {
+      userId: string;
+      reason: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.auth.token;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/users/force-password-reset/${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            reason
+          }),
+        }
+      );
+
+      const data = await res.json();
+      console.log(data);
+      
+
+      if (!res.ok) {
+      return rejectWithValue(data.message || "Failed to reset user password");
+    }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue("Failed to reset to user password");
+    }
+  }
+);
+export const changlePlan = createAsyncThunk(
+  "user/change-plan",
+  async (
+    {
+      userId,
+      plan
+    }: {
+      userId: string;
+      plan: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.auth.token;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/users/change-plan/${userId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            plan
+          }),
+        }
+      );
+
+      const data = await res.json();
+      console.log(data);
+      
+
+      if (!res.ok) {
+      return rejectWithValue(data.message || "Failed to change user plan");
+    }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue("Failed to change to user plan");
+    }
+  }
+);
+
+
 const usersSlice = createSlice({
   name: "users",
   initialState : initialState,
@@ -176,7 +406,76 @@ const usersSlice = createSlice({
       .addCase(fetchSessionById.rejected, (state, action) => {
         state.isFetchingOne = false;
         state.error = action.payload || "Failed to fetch user details";
-      });
+      })
+
+    //suspend store
+      .addCase(banUSer.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(banUSer.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(banUSer.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+       //verify store
+      .addCase(warnUser.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      .addCase(warnUser.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+
+      .addCase(warnUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      //send message
+      .addCase(sendMessage.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      .addCase(sendMessage.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+
+      .addCase(sendMessage.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      
+
+      //passord reset
+      .addCase(forcePassword.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      .addCase(forcePassword.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+
+      .addCase(forcePassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      //change plan
+      .addCase(changlePlan.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      .addCase(changlePlan.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+
+      .addCase(changlePlan.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
   }
 });
 

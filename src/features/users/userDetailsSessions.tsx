@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { TopNavbar } from "../../component/topNavbar";
-import { UserQuickActions } from "./utils/UserQuickActions";
+import { UserQuickActions } from "./sidepanel/UserQuickActions";
 import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
 import { fetchSessionById } from "./userSlice";
 import { useEffect } from "react";
@@ -23,8 +23,7 @@ export const UserDetailsSessions = () => {
   
   return (
     <section className="space-y-4 font-sans">
-      <TopNavbar searchPlaceholder="Type to search..." />
-
+  
       <p className="text-[11px] text-[#878293]">
         &lt; User Accounts / <span className="font-medium text-[#484056]">John Adetola</span>
       </p>

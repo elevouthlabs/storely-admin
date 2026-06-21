@@ -3,15 +3,38 @@ import { useState } from "react";
 type SuspendStoreModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  storeName: string;
-  storeHandle: string;
+  storeName: string |undefined;
+  storeHandle: string |undefined;
+
+  onSuspend: (
+    reason: string,
+    noteToSeller: string
+  ) => Promise<void>;
 };
 
-export const SuspendStoreModal = ({ isOpen, onClose, storeName, storeHandle }: SuspendStoreModalProps) => {
+export const SuspendStoreModal = ({ isOpen, onClose, storeName, storeHandle, onSuspend, }: SuspendStoreModalProps) => {
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const canSuspend =  reason.trim().length > 0 && note.trim().length > 0;
+
+  const handleSuspend = async () => {
+    if (!canSuspend) return;
+
+    try {
+      setSubmitting(true);
+
+      await onSuspend(reason, note);
+
+      setReason("");
+      setNote("");
+
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -34,7 +57,7 @@ export const SuspendStoreModal = ({ isOpen, onClose, storeName, storeHandle }: S
           <div className="space-y-3 px-4 py-3">
             <div className="rounded-md bg-slate-50 px-2.5 py-2">
               <p className="text-sm font-medium text-slate-800">{storeName}</p>
-              <p className="text-[11px] text-slate-400">{storeHandle}</p>
+              <p className="text-[11px] text-slate-400">{"@"+storeHandle}</p>
             </div>
 
             <div>
@@ -77,12 +100,13 @@ export const SuspendStoreModal = ({ isOpen, onClose, storeName, storeHandle }: S
             </button>
             <button
               type="button"
+              onClick={handleSuspend}
               className={`h-7 w-1/2 rounded-md px-7 text-[11px] font-semibold text-white ${
                 canSuspend ? "bg-rose-500 hover:bg-rose-600" : "cursor-not-allowed bg-rose-300"
               }`}
-              disabled={!canSuspend}
+              disabled={!canSuspend || submitting}
             >
-              Suspend Store
+              {submitting ? "Suspending..." :  "Suspend Store"}
             </button>
           </div>
         </div>

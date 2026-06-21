@@ -7,6 +7,8 @@ import { ExtendedGraceModal } from "./modal/extendedGrace";
 import { CancelSubscriptionModal } from "./modal/cancelSub";
 import { subscriptionOverviewRows, type OverviewPlan } from "./mock/subscriptionOverviewSeed";
 import { subscriptionStoreSlug } from "./mock/subscriptionPaths";
+import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
+import { fetchRevenueById } from "./revenueSlice";
 
 const PRIMARY_PURPLE = "#580080";
 const DESTRUCTIVE_RED = "#EF4444";
@@ -139,10 +141,21 @@ export default function RevenueDetails() {
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [isGraceOpen, setIsGraceOpen] = useState(false);
   const [isCancelOpen, setIsCancelOpen] = useState(false);
+  const {revenue, isFetchingOne, error }= useAppSelector((state) => state.revenues);
+  const dispatch = useAppDispatch()
 
-  useEffect(() => {
-    setAutoRenew(detail.autoRenew);
-  }, [detail]);
+  // useEffect(() => {
+  //   setAutoRenew(detail.autoRenew);
+  //   if(storeId){
+  //     dispatch(fetchRevenueById(storeId))
+  //   }
+  // }, [detail, dispatch, storeId]);
+
+  // console.log(revenue);
+  
+
+  //  if (isFetchingOne) return <p>Loading orders...</p>;
+  //  if (error) return <p>Error: {error}</p>;   
 
   return (
     <section className="min-h-full pb-8">

@@ -1,6 +1,5 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { TopNavbar } from "../../component/topNavbar";
 import { SendMessageModal } from "./modal/sendMessageModal";
 import { VerifyStoreModal } from "./modal/verifyStoreModal";
 import { SuspendStoreModal } from "./modal/suspendStoreModal";
@@ -8,6 +7,7 @@ import { StoreQuickActions } from "./utils/StoreQuickActions";
 import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
 import { fetchStoreOrders, fetchStoreById } from "./storeDirectory";
 import type { OrderStatus } from "./storeDirectory.type";
+import { useStoreActions } from "../../hook/useStoreActions";
 
 const statusClass = (status: OrderStatus) => {
   if (status === "NEW") return "bg-blue-100 text-blue-700";
@@ -23,9 +23,14 @@ export const StoreDirectoryOrders = () => {
   const { storeId } = useParams();
   const {orders, store, isFetchingOne, error} = useAppSelector((state)=> state.stores)
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [isVerifyModalOpen, setIsVerifyModalOpen] = useState(false);
   const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);
+  const { handleVerify, handleSuspend, handleSendMessage } =
+  useStoreActions(store?.id);
+
+  if (!store) return <p>Store not found</p>;
 
    useEffect(()=>{
       if(storeId){
@@ -44,9 +49,7 @@ export const StoreDirectoryOrders = () => {
 
   return (
     <section className="space-y-4">
-      <TopNavbar searchPlaceholder="Search this store..." />
-
-      <p className="text-sm text-slate-500">
+      <p className="text-sm text-slate-500" onClick={()=> navigate("/dashboard/store-directory")}>
         Store Directory <span className="mx-1">/</span> <span className="text-slate-700">{store?.name} Lagos</span>
       </p>
 
@@ -120,18 +123,22 @@ export const StoreDirectoryOrders = () => {
         onClose={() => setIsMessageModalOpen(false)}
         storeName="Fashion Hub Lagos"
         storeHandle="@fashionhub"
+        onSendMessage={handleSendMessage}
       />
       <VerifyStoreModal
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}
         storeName="Fashion Hub Lagos"
         storeHandle="@fashionhub"
+        isActive ={store?.isActive}
+        onVerify={handleVerify}
       />
       <SuspendStoreModal
         isOpen={isSuspendModalOpen}
         onClose={() => setIsSuspendModalOpen(false)}
         storeName="Fashion Hub Lagos"
         storeHandle="@fashionhub"
+        onSuspend={handleSuspend}
       />
     </section>
   );

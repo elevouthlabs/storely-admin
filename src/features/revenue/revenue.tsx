@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 import { FAILED_PAYMENTS_COUNT, FailedPaymentsPanel } from "./tab/failedPayment";
 import { subscriptionOverviewRows } from "./mock/subscriptionOverviewSeed";
 import { subscriptionDetailPath } from "./mock/subscriptionPaths";
 import { Icon } from "@iconify/react";
+import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
+import { fetchRevenue } from "./revenueSlice";
 
 const PRIMARY_PURPLE = "#6B46C1";
 
@@ -47,7 +49,20 @@ export default function Revenue() {
   const panelTitle = "All Subscriptions";
   const activeTabClasses = "border-b-2 font-medium pb-2 text-[12px]";
   const inactiveTabClasses = "border-b-2 border-transparent pb-2 font-medium text-[12px] text-slate-500 hover:text-slate-700";
+  const {revenues, isLoading, error }= useAppSelector((state) => state.revenues);
+  const token = useAppSelector((state) => state.auth.token);
+  const dispatch = useAppDispatch()
 
+    // useEffect(() => {
+    //     if (token) {
+    //       dispatch(fetchRevenue({ page: 1, limit: 10 }));
+    //     }
+    //   }, [dispatch, token]);
+      
+    //   console.log(revenues);
+  
+   if (isLoading) return <p>Loading orders...</p>;
+   if (error) return <p>Error: {error}</p>;   
   return (
     <section className="min-h-full space-y-4">
       <header>

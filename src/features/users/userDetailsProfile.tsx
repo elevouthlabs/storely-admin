@@ -1,13 +1,17 @@
 import { Link, useParams } from "react-router-dom";
-import { TopNavbar } from "../../component/topNavbar";
-import { UserQuickActions } from "./utils/UserQuickActions";
+import { UserQuickActions } from "./sidepanel/UserQuickActions";
+import { useUserActions } from "../../hook/useUserActions";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
 import { fetchUserById } from "./userSlice";
 import { Icon } from "@iconify/react";
-
-const tabs = ["Profile", "Stores", "Sessions"] as const;
+import { BanAccount } from "./modal/banAccount";
+import { WarnAccount } from "./modal/warnAccount";
+import { Reset2fa } from "./modal/reser2fa";
+import { SendMessage } from "./modal/sendMessage";
+import { PasswordReset } from "./modal/passwordReset";
+import { DowngradePlan } from "./modal/downgrdePlan";
 
 const StatCard = ({
   label,
@@ -31,10 +35,23 @@ export const UserDetailsProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const [ban, setBan] = useState(false);
+  const [warn, setWarn] = useState(false);
+  const [reset, setReset] = useState(false);
+  const [message, setMessage] = useState(false);
+  const [password, setPassword] = useState(false)
+  const [plan, setPlan] = useState(false)
 
   const { user, isFetchingOne, error } = useAppSelector(
     (state) => state.users
   );
+  
+  const { handleBan, 
+    handleWarn, 
+    handleSendMessage, handleForcePassword, handleChangePlan} = useUserActions(userId)
+
+  console.log(user);
+  
 
   useEffect(() => {
   if (userId) {
@@ -50,7 +67,6 @@ export const UserDetailsProfile = () => {
 
   return (
     <section className="space-y-4 font-sans">
-      <TopNavbar searchPlaceholder="Type to search..." />
 
       <p className="text-[11px] text-[#878293]" onClick={()=> navigate(-1)}>
         &lt; User Accounts / <span className="font-medium text-[#484056]">{user.fullName}</span>
@@ -81,13 +97,13 @@ export const UserDetailsProfile = () => {
         <div className="rounded-[14px] border border-[#ece9f2] bg-white">
           <div className="flex items-center gap-4 border-b border-[#ece9f2] px-4 pt-3">
             <Link to={`/dashboard/user-management/${userId}`} className="border-b border-[#6b21d8] pb-3 text-[11px] font-medium text-[#352a48]">
-              {tabs[0]}
+              Profile
             </Link>
             <Link to={`/dashboard/user-management/${userId}/stores`} className="pb-3 text-[11px] font-medium text-[#928ca0] hover:text-[#6b21d8]">
-              {tabs[1]}
+              Store
             </Link>
             <Link to={`/dashboard/user-management/${userId}/sessions`} className="pb-3 text-[11px] font-medium text-[#928ca0] hover:text-[#6b21d8]">
-              {tabs[2]}
+              Session
             </Link>
           </div>
 
@@ -148,9 +164,53 @@ export const UserDetailsProfile = () => {
             </div>
           </div>
         </div>
-
-        <UserQuickActions />
+        <UserQuickActions 
+         actions={{
+            ban: () => setBan(true),
+            warn: () => setWarn(true),
+            reset: () => setReset(true),
+            message: () => setMessage(true),
+            password: () => setPassword(true),
+            plan: () => setPlan(true),
+          }} 
+        />
       </div>
+      <BanAccount 
+       isOpen={ban} 
+       onClose={()=> setBan(false)} 
+       fullName={user.fullName}
+       email={user.email}
+       onBan={handleBan}
+       />
+      <WarnAccount
+       isOpen={warn}
+       onClose={()=> setWarn(false)}
+       fullName={user.fullName}
+       email={user.email} 
+       onWarn={handleWarn}
+       />
+      <Reset2fa isOpen={reset} onClose={()=> setReset(false)} fullName={user.fullName}
+        email={user.email} />
+      <SendMessage 
+      isOpen={message} 
+      onClose={()=> setMessage(false)} 
+      fullName={user.fullName}
+      email={user.email} 
+      onSendMessage={handleSendMessage}
+      />
+      <PasswordReset 
+      isOpen={password} 
+      onClose={()=> setPassword(false)} 
+      fullName={user.fullName}
+      email={user.email} 
+      onForcePassword={handleForcePassword}
+      />
+      <DowngradePlan 
+       isOpen={plan} 
+       onClose={()=> setPlan(false)} 
+       fullName={user.fullName}
+       onChangePlan={handleChangePlan}
+       />  
     </section>
   );
 };

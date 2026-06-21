@@ -21,7 +21,6 @@ const initialState: StoreState = {
 
   isLoading: false,
   isFetchingOne: false,
-
   error: null,
 };
 
@@ -43,6 +42,7 @@ export const fetchStores = createAsyncThunk<
           `${import.meta.env.VITE_API_URL}/admin/stores?${query}`,
           {
             headers: {
+              "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
           }
@@ -74,6 +74,7 @@ export const fetchStoreById = createAsyncThunk<
         `${import.meta.env.VITE_API_URL}/admin/store/single/${storeId}`,
         {
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -105,6 +106,7 @@ export const fetchStoreProduct = createAsyncThunk<
         `${import.meta.env.VITE_API_URL}/admin/store/products/${storeId}`,
         {
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -136,6 +138,7 @@ export const fetchStoreOrders = createAsyncThunk<
         `${import.meta.env.VITE_API_URL}/admin/store/orders/${storeId}`,
         {
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
@@ -156,6 +159,141 @@ export const fetchStoreOrders = createAsyncThunk<
   }
 );
 
+
+export const suspendStore = createAsyncThunk(
+  "stores/suspendStore",
+  async (
+    {
+      storeId,
+      reason,
+      noteToSeller,
+    }: {
+      storeId: string;
+      reason: string;
+      noteToSeller: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.auth.token;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/store/suspend/${storeId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            reason,
+            noteToSeller,
+          }),
+        }
+      );
+
+      const data = await res.json();
+      console.log(data);
+      
+
+      if (!res.ok) {
+      return rejectWithValue(data.message || "Failed to suspend store");
+    }
+
+      return data;
+    } catch (error) {
+       console.log("BACKEND ERROR:", error);
+      return rejectWithValue("Failed to suspend store");
+    }
+  }
+);
+
+export const SendMessage = createAsyncThunk(
+  "stores/send-message",
+  async (
+    {
+      storeId,
+
+      subject,
+      message
+    }: {
+      storeId: string;
+      subject: string;
+      message: string;
+    },
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.auth.token;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/store/send-message/${storeId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+          
+            subject,
+            message
+          }),
+        }
+      );
+
+      const data = await res.json();
+      console.log(data);
+      
+
+      if (!res.ok) {
+      return rejectWithValue(data.message || "Failed to message to store");
+    }
+
+      return data;
+    } catch (error) {
+      return rejectWithValue("Failed to send message to store");
+    }
+  }
+);
+
+export const verifyStore = createAsyncThunk(
+  "stores/verifyStore",
+  async (
+    storeId: string,
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      const token = (getState() as RootState).auth.token;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/admin/store/verify/${storeId}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+      console.log(data);
+      
+
+      if (!res.ok) {
+        return rejectWithValue(
+          data.message || "Failed to verify store"
+        );
+      }
+
+      return data;
+    } catch {
+      return rejectWithValue("Failed to verify store");
+    }
+  }
+);
 
 const storeSlice = createSlice({
   name: "stores",
@@ -219,6 +357,36 @@ const storeSlice = createSlice({
       state.isFetchingOne = false;
       state.error = action.payload || "Failed to fetch orders";
     })
+
+    //suspend store
+      .addCase(suspendStore.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(suspendStore.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(suspendStore.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+
+      //verify store
+      .addCase(verifyStore.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      .addCase(verifyStore.fulfilled, (state, action) => {
+        state.isLoading = false;
+
+       if (state.store && action.payload?.data) {
+    state.store = action.payload.data;
+  }
+      })
+
+      .addCase(verifyStore.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
           
   }
 
