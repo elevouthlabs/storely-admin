@@ -41,7 +41,7 @@ export const fetchStores = createAsyncThunk<
       }
 
       return data;
-    } catch (error) {
+    } catch {
       return rejectWithValue("Failed to fetch store directory");
     }
   }
@@ -74,7 +74,7 @@ export const fetchStoreById = createAsyncThunk<
       }
 
       return data;
-    } catch (error) {
+    } catch  {
       return rejectWithValue("Failed to fetch store");
     }
   }

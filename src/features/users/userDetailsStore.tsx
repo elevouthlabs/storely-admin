@@ -36,7 +36,7 @@ import { DowngradePlan } from "./modal/downgrdePlan";
 //   return "bg-[#fff3e6] text-[#b45309]";
 // };
 
-export const UserDetailsStore = () => {
+const UserDetailsStore = () => {
   const dispatch = useAppDispatch();
   const [ban, setBan] = useState(false);
   const [warn, setWarn] = useState(false);
@@ -55,9 +55,10 @@ export const UserDetailsStore = () => {
   const { userId } = useParams();
 
   useEffect(() => {
-  if (userId) {
-    dispatch(fetchUserById(userId));
-    }
+  if(!userId) return;
+
+  dispatch(fetchUserById(userId));
+    
   }, [dispatch, userId]);
 
   if (isFetchingOne) return <p>Loading user...</p>;
@@ -194,3 +195,5 @@ export const UserDetailsStore = () => {
     </section>
   );
 };
+
+export default UserDetailsStore;

@@ -32,6 +32,7 @@ export const fetchDashboardData = createAsyncThunk<
       `${import.meta.env.VITE_API_URL}/admin/metrics/dashboard`,
       {
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       }

@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
 import { fetchUsers } from "./userSlice";
 import { Icon } from "@iconify/react";
+
 
 const planOptions = ["Pro", "Growth", "Pro", "Starter", "Pro"] as const;
 
@@ -12,28 +13,41 @@ const planBadgeClass = (plan: (typeof planOptions)[number]) => {
   return "bg-amber-100 text-amber-700";
 };
 
-export const UserManagement = () => {
-  const { users, isLoading, error } = useAppSelector((state) => state.users);
+const UserManagement = () => {
+  const { users, pagination, isLoading, error } = useAppSelector((state) => state.users);
   const token = useAppSelector((state) => state.auth.token);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1)
   const initials = users?.map((user) => {
   const names = user?.business?.name?.split(" ") || [];
     return names.map((name) => name[0]).join(""); 
   }) || [];
-
-  console.log(users);
   
  
-    useEffect(() => {
-      if (token) {
-          dispatch(fetchUsers({ page: 1, limit: 10 }));
-      }
-    }, [dispatch, token]);
-    
+  useEffect(() => {
+    const controller = new AbortController();
+    if (token) {
+      dispatch(fetchUsers({ page, limit: 10 }));
+    }
+    return () => {
+      controller.abort();
+    };
+  }, [page, token, dispatch]);
+  
 
-     if (isLoading) return <p>Loading users...</p>;
-     if (error) return <p>Error: {error}</p>;
+    if (isLoading) return <p>Loading users...</p>;
+    if (error) return <p>Error: {error}</p>;
+
+  const filteredRows = users.filter((row) => {
+    // const matchesStatus = statusFilter === "All Status" || row.status === statusFilter;
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      row.business?.name.toLowerCase().includes(query);
+     return matchesSearch;
+  });
 
      
   return (
@@ -55,6 +69,8 @@ export const UserManagement = () => {
             <Icon icon="lucide:search" className="h-4 w-4 text-slate-500" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search by transaction ID, order ID, or customer..."
               className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
             />
@@ -77,7 +93,7 @@ export const UserManagement = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map((user, index) => (
+              {filteredRows.map((user, index) => (
                 <tr key={user.id} 
                 onClick={() => navigate(`/dashboard/user-management/${user.id}`)}
                 className="border-b border-slate-100 last:border-none cursor-pointer">
@@ -123,17 +139,50 @@ export const UserManagement = () => {
           </table>
         </div>
 
-        <footer className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-          <p>Showing 1 to 5 of 150 results</p>
-          <div className="flex items-center gap-1">
-            <button className="rounded border border-slate-200 px-2 py-1">Prev</button>
-            <button className="rounded bg-violet-700 px-2 py-1 text-white">1</button>
-            <button className="rounded border border-slate-200 px-2 py-1">2</button>
-            <button className="rounded border border-slate-200 px-2 py-1">3</button>
-            <button className="rounded border border-slate-200 px-2 py-1">Next</button>
+        <footer className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs   text-slate-500">
+          <p>
+            Showing {(page - 1) * 10 + 1} to{" "}
+            {Math.min(page * 10, pagination?.total ?? 0)} of{" "}
+            {pagination?.total ?? 0} results
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="rounded border px-3 py-1 disabled:opacity-50"
+            >
+              Prev
+            </button>
+
+            {Array.from(
+              { length: pagination?.totalPages ?? 0 },
+              (_, i) => i + 1
+            ).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => setPage(pageNum)}
+                className={`rounded px-3 py-1 ${
+                  page === pageNum
+                    ? "bg-violet-700 text-white"
+                    : "border"
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+
+            <button
+              disabled={page === pagination?.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="rounded border px-3 py-1 disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
         </footer>
       </div>
     </section>
   );
 };
+
+export default UserManagement;

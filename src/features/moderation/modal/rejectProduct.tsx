@@ -22,26 +22,27 @@ export const RejectProduct=({ isOpen, onClose, onApply }: ApplyCouponModalProps)
           };
         }, [isOpen]);
         
-          useEffect(() => {
-            if (!isOpen) setGrace("");
-          }, [isOpen]);
+         if (!isOpen) return null;
         
-          if (!isOpen) return null;
-        
-          const handleApply = () => {
-            const trimmed = grace.trim();
-            if (!trimmed) return;
-            onApply?.(trimmed);
-            onClose();
-          };
+        const handleApply = () => {
+          const trimmed = grace.trim();
+          if (!trimmed) return;
+          onApply?.(trimmed);
+          onClose();
+        };
+
+        const handleClose = () => {
+          setGrace("");  
+          onClose();
+        };
         
         return (
         <div
-          className="fixed inset z-[9999] flex items-center justify-center bg-[#28272AB0]"
+          className="fixed inset-0  z-[9999] flex items-center justify-center bg-[#28272AB0]"
           role="dialog"
           aria-modal="true"
           aria-labelledby="apply-coupon-title"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <div
             className="p-[24px] max-w-[448px] rounded-[10px] border bg-white shadow-2xl"
@@ -53,7 +54,7 @@ export const RejectProduct=({ isOpen, onClose, onApply }: ApplyCouponModalProps)
               </h2>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="rounded p-1 text-lg leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                 aria-label="Close modal"
               >
@@ -93,7 +94,7 @@ export const RejectProduct=({ isOpen, onClose, onApply }: ApplyCouponModalProps)
                <footer className="flex items-center gap-2 mt-[24px]">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="rounded-[10px] border border-[#CAD5E2] w-1/2 p-3 text-[16px] font-medium text-[#47444B] hover:bg-slate-50"
               >
                 Cancel

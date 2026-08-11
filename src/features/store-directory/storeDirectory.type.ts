@@ -17,6 +17,7 @@ export type StoreDirectory = {
 export type StoreProduct = {
   id: string;
   name: string;
+  businessId: string;   
   price: number;
   slug: string;
   imageUrls:  { url: string }[]
@@ -40,6 +41,7 @@ export type Pagination = {
   page: number;
   limit: number;
   total: number;
+  totalPages: number;
 };
 
 export type StoreResponse = {

@@ -22,10 +22,10 @@ export const StoreDirectoryDetails = () => {
   
   
     useEffect(() => {
-    if (storeId) {
+    if (!storeId) return; 
       dispatch(fetchStoreById(storeId));
       dispatch(fetchStoreOrders(storeId))
-      }
+      
     }, [dispatch, storeId]);
 
     console.log(store);
@@ -35,17 +35,14 @@ export const StoreDirectoryDetails = () => {
       return acc + Number(order.totalAmount);
     }, 0);
   
-    if (isFetchingOne) return <p>Loading user...</p>;
   
     if (error) return <p>{error}</p>;
+    if (!store) return;
   
-    if (!storeId) return <p>Store not found</p>;
-    if (!store) return 
-    
   return (
     <section className="space-y-4">
       <p className="text-sm text-slate-500" onClick={()=> navigate("/dashboard/store-directory")}>
-        Store Directory <span className="mx-1">/</span> <span className="text-slate-700">{store?.name} Lagos</span>
+        Store Directory <span className="mx-1">/</span> <span className="text-slate-700">{store?.name}</span>
       </p>
 
       <article className="rounded-xl bg-[linear-gradient(90deg,#1D4ED8,#7C3AED,#A21CAF)] p-4 text-white shadow-sm">
@@ -56,7 +53,7 @@ export const StoreDirectoryDetails = () => {
             alt={store?.name}
             className="flex h-16 w-16 items-center justify-center rounded-xl bg-white/90 text-2xl" />
             <div>
-              <h1 className="text-4xl font-semibold leading-tight">{store?.name} Lagos</h1>
+              <h1 className="text-4xl font-semibold leading-tight">{store?.name}</h1>
               <p className="text-sm text-white/85">{"@"+store?.slug}</p>
               <Link to="/store-directory" className="mt-1 inline-block text-sm text-white underline underline-offset-2">
                 View live store →
@@ -78,7 +75,7 @@ export const StoreDirectoryDetails = () => {
               Orders
             </Link>
           </div>
-
+          {isFetchingOne ? <p>Loading....</p> : (
           <div className="space-y-4 p-4">
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
@@ -91,18 +88,18 @@ export const StoreDirectoryDetails = () => {
               </div>
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
                 <p className="text-xs uppercase tracking-wide text-slate-500">Member Since</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">{DateFormatter(store?.createdAt)}</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">{DateFormatter(store.createdAt)}</p>
               </div>
             </div>
 
             <div>
               <h2 className="text-lg font-semibold text-slate-900">Store Description</h2>
               <p className="mt-1 max-w-2xl text-sm text-slate-600">
-                {store?.description || "n/a"}
+                {store.description || "n/a"}
               </p>
               <h3 className="mt-3 text-sm font-semibold text-slate-700">Category</h3>
               <span className="mt-1 inline-flex rounded-full bg-indigo-100 px-2 py-1 text-xs font-medium text-indigo-700">
-                {store?.category || "n/a"}
+                {store.category || "n/a"}
               </span>
             </div>
 
@@ -128,6 +125,7 @@ export const StoreDirectoryDetails = () => {
               </div>
             </article>
           </div>
+          )}
         </article>
 
         <StoreQuickActions
@@ -140,23 +138,23 @@ export const StoreDirectoryDetails = () => {
       <SendMessageModal
         isOpen={isMessageModalOpen}
         onClose={() => setIsMessageModalOpen(false)}
-        storeName={store?.name}
-        storeHandle={store?.slug}
+        storeName={store.name}
+        storeHandle={store.slug}
         onSendMessage={handleSendMessage}
       />
       <VerifyStoreModal
         isOpen={isVerifyModalOpen}
         onClose={() => setIsVerifyModalOpen(false)}
-        storeName={store?.name}
-        storeHandle={store?.slug}
-        isActive ={store?.isActive}
+        storeName={store.name}
+        storeHandle={store.slug}
+        isActive ={store.isActive}
         onVerify={handleVerify}
       />
       <SuspendStoreModal
         isOpen={isSuspendModalOpen}
         onClose={() => setIsSuspendModalOpen(false)}
-        storeName={store?.name}
-        storeHandle={store?.slug}
+        storeName={store.name}
+        storeHandle={store.slug}
          onSuspend={handleSuspend}
       />
     </section>

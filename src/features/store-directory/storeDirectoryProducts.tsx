@@ -18,18 +18,25 @@ export const StoreDirectoryProducts = () => {
   const [isSuspendModalOpen, setIsSuspendModalOpen] = useState(false);  
   const { handleVerify, handleSuspend, handleSendMessage } =
     useStoreActions(store?.id);
+  const ids = products?.map((product) => product.id);
 
-  if (!store) return <p>Store not found</p>;
+const duplicateIds = ids?.filter(
+  (id, index) => ids.indexOf(id) !== index
+);
+
+console.log("Duplicate IDs:", duplicateIds);
 
   useEffect(()=>{
-    if(storeId){
+    if(!storeId) return
+    
       dispatch(fetchStoreProduct(storeId))
       dispatch(fetchStoreById(storeId))
-    }
+    
 
   }, [dispatch, storeId])
   
   if (error) return <p>{error}</p>;
+  if (!store) return <p>Store not found</p>;
   
   return (
     <section className="space-y-4">

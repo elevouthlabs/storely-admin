@@ -3,26 +3,35 @@ import { Icon } from "@iconify/react";
 import { RejectProduct } from "./modal/rejectProduct";
 import { ApproveProduct } from "./modal/approveProduct";
 import { RequestEdit } from "./modal/requestEdit";
-import { useState, useEffect } from "react";
-import { Product } from "./moderation";
+import { useState, useEffect, useMemo } from "react";
+import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
+import { fetchStoreById, fetchStoreProduct } from "../store-directory/storeDirectory";
 
 const ModerationDetails = ()=>{
-    const {itemName} = useParams()
+    console.log("ModerationDetails rendered");
+    const { storeId, productId } = useParams();
     const [currentIndex, setCurrentIndex] = useState(0);
-    const slides = [1, 2, 3, 4, 5]; // just placeholders
-    const product = Product.find((p)=> p.itemName === itemName)
     const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
     const [isGraceOpen, setIsGraceOpen] = useState(false);
     const [isCancelOpen, setIsCancelOpen] = useState(false);
+    const dispatch = useAppDispatch()
+    const {store, products, isLoading, error} = useAppSelector((state)=> state.stores)
     const CARD = "rounded-lg border border-[#E8EAED] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]";
+    const product = useMemo(() => products.find(p => p.id === productId),
+    [products, productId]
+    );
 
-   useEffect(() => {
-    const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % slides.length);
-    }, 3000);
+    const slides = product?.imageUrls ?? [];
 
-    return () => clearInterval(interval);
-    }, [slides.length]);
+    // useEffect(() => {
+    //     if (!slides.length) return;
+
+    //     const interval = setInterval(() => {
+    //         setCurrentIndex((prev) => (prev + 1) % slides.length);
+    //     }, 3000);
+
+    //     return () => clearInterval(interval);
+    // }, [slides.length]);
 
     const next = () => {
     setCurrentIndex((prev) => (prev + 1) % slides.length);
@@ -33,6 +42,29 @@ const ModerationDetails = ()=>{
         prev === 0 ? slides.length - 1 : prev - 1
     );
     };
+
+    useEffect(() => {
+        if (!storeId) return;
+
+        const load = async () => {
+            try {
+            await Promise.all([
+                dispatch(fetchStoreById(storeId)).unwrap(),
+                dispatch(fetchStoreProduct(storeId)).unwrap(),
+            ]);
+        
+            } catch (err) {
+            console.error(err);
+            }
+        };
+
+        load();
+        }, [dispatch, storeId]);
+
+    if (isLoading) return <p>Loading dashboard...</p>;
+    if (error) return <p className="text-red-500">{error}</p>;
+
+        
     return(
     <section className="min-h-full space-y-4 pb-8 relative">
         <nav className="text-[12px] text-slate-500" aria-label="Breadcrumb">
@@ -45,17 +77,19 @@ const ModerationDetails = ()=>{
             <li className="px-0.5 text-slate-400" aria-hidden="true">
                 /
             </li>
-            <li className="font-medium text-slate-600">{product?.itemName}</li>
+            <li className="font-medium text-slate-600">{store?.name}</li>
             </ol>
         </nav>
         <div className="bg-white p-[25px] flex justify-between items-center">
             <div className="flex flex-col gap-1">
-                <h2 className="text-[30px] leading-[36px] font-bold text-[#47444B]">{product?.itemName}</h2>
-                <p className="text-[#6A7282] text-[16px] leading-[24px] ">Uploaded Apr 21, 2026 12:00
-                <span className="text-[#314158] text-[14px] leading-[20px] bg-[#F1F5F9] px-[8px] py-[4px] ml-2">Fashion & Accessories</span></p>
+                <h2 className="text-[30px] leading-[36px] font-bold capitalize text-[#47444B]">{store?.name}</h2>
+                <p className="text-[#6A7282] text-[16px] leading-[24px] ">{product?.createdAt} 
+                <span className="text-[#314158] text-[14px] leading-[20px] bg-[#F1F5F9] px-[8px] py-[4px] ml-2">{store?.category}</span></p>
             </div>
             <p className="bg-[#FEF2F2] border border-[#FFC9C9] py-[8px] px-[16px]
-            text-[#82181A] text-[16px] leading-[24px] font-medium rounded-[10px]">AI Flagged</p>
+            text-[#82181A] text-[16px] leading-[24px] font-medium rounded-[10px] inline-flex items-center gap-1">
+                <Icon icon="lucide:shield" className="h-6 w-6 shrink-0"/>
+                AI Flagged</p>
         </div>
         <div className="grid gap-4 md:grid-cols-5 items-start">
            <div className="col-span-3">
@@ -71,12 +105,16 @@ const ModerationDetails = ()=>{
                             transform: `translateX(-${currentIndex * 100}%)`,
                             }}
                         >
-                           {slides.map((_, idx) => (
+                          {slides.map((image, idx) => (
                             <div
                                 key={idx}
-                                className="min-w-full h-[253px] flex items-center justify-center text-3xl font-bold bg-[#D9D9D9]"
+                                className="min-w-full h-[253px]"
                             >
-                                Slide {idx + 1}
+                                <img
+                                src={image.url}
+                                alt={`Product ${idx + 1}`}
+                                className="w-full h-full object-cover rounded-[10px]"
+                                />
                             </div>
                             ))}
                         </div>
@@ -84,6 +122,7 @@ const ModerationDetails = ()=>{
                         {/* LEFT BUTTON */}
                         <button
                             onClick={prev}
+                            disabled={slides.length <= 1}
                             className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full"
                         >
                             <Icon icon="lucide:chevron-left" />
@@ -92,32 +131,42 @@ const ModerationDetails = ()=>{
                         {/* RIGHT BUTTON */}
                         <button
                             onClick={next}
+                            disabled={slides.length <= 1}
                             className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 p-2 rounded-full"
                         >
                             <Icon icon="lucide:chevron-right" />
                         </button>
                         {/* INDICATORS */}
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-                        {slides.map((_, idx) => (
-                            <button
-                            key={idx}
-                            onClick={() => setCurrentIndex(idx)}
-                            className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                                currentIndex === idx
-                                ? "bg-[#4B0082] scale-125"
-                                : "bg-gray-300"
-                            }`}
-                            />
-                        ))}
-                        </div>
+                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                            {slides.map((_, idx) => (
+                                <button
+                                key={idx}
+                                onClick={() => setCurrentIndex(idx)}
+                                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                                    currentIndex === idx
+                                    ? "bg-[#4B0082] scale-125"
+                                    : "bg-gray-300"
+                                }`}
+                                />
+                            ))}
+                          </div>
                         </div>
                     </div>
                     <div>
                         <p className="font-medium text-[20px] pb-4">Additional Images</p>
                         <div className="grid grid-cols-3 gap-4">
-                            <div className="h-[120px] rounded-[8px] bg-[#D9D9D9]"></div>
-                            <div className="h-[120px] rounded-[8px] bg-[#D9D9D9]"></div>
-                            <div className="h-[120px] rounded-[8px] bg-[#D9D9D9]"></div>
+                        {slides.slice(1).length ? (
+                            slides.slice(1).map((image, idx) => (
+                                <img
+                                    key={idx}
+                                    src={image.url}
+                                    alt={`Additional ${idx + 1}`}
+                                    className="h-[120px] w-full object-cover rounded-[8px]"
+                                />
+                            ))
+                        ) : (
+                            <p className="text-[#6A7282] text-[14px] col-span-3">No additional images available</p>
+                        )}
                         </div>
                     </div>
                 </div>
@@ -130,11 +179,11 @@ const ModerationDetails = ()=>{
                     </div>
                     <div>
                         <p className="text-[#6A7282] text-[14px] leading-[20px]">Stock Available</p>
-                        <p className="text-[16px] font-medium leading-[24px] text-[#47444B]">12 units</p>
+                        <p className="text-[16px] font-medium leading-[24px] text-[#47444B]">{product?.stockQuantity}</p>
                     </div>
                     <div>
                         <p className="text-[#6A7282] text-[14px] leading-[20px]">Description</p>
-                        <p className="text-[16px] leading-[24px] text-[#47444B]">Luxury designer handbag with gold hardware. Genuine leather, includes dust bag and authenticity card.</p>
+                        <p className="text-[16px] leading-[24px] text-[#47444B]">{store?.description}.</p>
                     </div>
                 </div>
                 <div className=" p-4 mt-3 rounded-[10px] bg-white flex flex-col">
@@ -210,11 +259,11 @@ const ModerationDetails = ()=>{
                     <div className="mb-[12px] flex flex-col gap-2">
                          <div>
                             <p className="text-[#45556C] text-[14px] leading-[20px]">Store Name</p>
-                            <p className="text-[#0F172B] text-[16px] leading-[24px] font-medium">Beauty Place</p>
+                            <p className="text-[#0F172B] text-[16px] leading-[24px] font-medium">{store?.name}</p>
                         </div>
                         <div>
                             <p className="text-[#45556C] text-[14px] leading-[20px]">Handle</p>
-                            <p className="text-[#0F172B] text-[16px] leading-[24px]">@beautypalace</p>
+                            <p className="text-[#0F172B] text-[16px] leading-[24px]">@{store?.slug}</p>
                         </div>
                         <div>
                             <p className="text-[#45556C] text-[14px] leading-[20px]">Plan Tier</p>

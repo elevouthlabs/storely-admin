@@ -53,13 +53,13 @@ export default function Revenue() {
   const token = useAppSelector((state) => state.auth.token);
   const dispatch = useAppDispatch()
 
-    // useEffect(() => {
-    //     if (token) {
-    //       dispatch(fetchRevenue({ page: 1, limit: 10 }));
-    //     }
-    //   }, [dispatch, token]);
+    useEffect(() => {
+        if (token) {
+          dispatch(fetchRevenue({ page: 1, limit: 10 }));
+        }
+      }, [dispatch, token]);
       
-    //   console.log(revenues);
+      console.log(revenues);
   
    if (isLoading) return <p>Loading orders...</p>;
    if (error) return <p>Error: {error}</p>;   

@@ -17,6 +17,7 @@ const initialState: StoreState = {
     page: 1,
     limit: 10,
     total: 0,
+    totalPages: 0,
   },
 
   isLoading: false,
@@ -54,7 +55,7 @@ export const fetchStores = createAsyncThunk<
           return rejectWithValue(data.message);
         }
         return data;
-      } catch (error) {
+      } catch {
         return rejectWithValue("Failed to fetch store directory");
       }
     }
@@ -253,7 +254,7 @@ export const SendMessage = createAsyncThunk(
     }
 
       return data;
-    } catch (error) {
+    } catch {
       return rejectWithValue("Failed to send message to store");
     }
   }
@@ -335,7 +336,7 @@ const storeSlice = createSlice({
       state.error = null;
     })
     .addCase(fetchStoreProduct.fulfilled, (state, action) => {
-      state.isFetchingOne = false
+      state.isFetchingOne = false;
       state.products = action.payload.data;
       state.pagination = action.payload.pagination;
     })

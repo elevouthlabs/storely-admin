@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchStores } from "./storeDirectory";
 import { fetchOrders } from "../order/orderSlice";
 import { Icon } from "@iconify/react";
@@ -18,8 +18,10 @@ import { Icon } from "@iconify/react";
 // };
 
 export const StoreDirectory = () => {
-  const {stores, isLoading, error} = useAppSelector((state)=> state.stores)
+  const {stores, isLoading, pagination, error} = useAppSelector((state)=> state.stores)
+  const [searchQuery, setSearchQuery] = useState("");
   const {orders} = useAppSelector((state)=> state.orders)
+  const [page, setPage] = useState(1)
   const token = useAppSelector((state) => state.auth.token);
   const dispatch =useAppDispatch()
   const navigate = useNavigate() 
@@ -54,6 +56,15 @@ useEffect(() => {
       return acc;
     }, {} as Record<string, typeof orders>);
   }, [orders]);
+  // const ordersByStore: Record<string, typeof orders> = {};
+
+  //   orders.forEach(order => {
+  //     const id = order.businessId;
+  //     if (!id) return;
+
+  //     ordersByStore[id] = ordersByStore[id] || [];
+  //     ordersByStore[id].push(order);
+  //   });
 
   const gmvByStore = useMemo(() => {
     return orders.reduce((acc, order) => {
@@ -66,7 +77,15 @@ useEffect(() => {
     }, {} as Record<string, number>);
   }, [orders]);
 
-     if (isLoading) return <p>Loading stores...</p>;
+  const filteredRows = stores.filter((row) => {
+    // const matchesStatus = statusFilter === "All Status" || row.status === statusFilter;
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !query ||
+      row.name.toLowerCase().includes(query);
+     return matchesSearch;
+  });
+
      if (error) return <p>Error: {error}</p>;
   
   return (
@@ -87,6 +106,8 @@ useEffect(() => {
             <Icon icon="lucide:search" className="h-4 w-4 text-slate-400" />
             <input
               type="text"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search by transaction ID, order ID, or customer..."
               className="w-full bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
             />
@@ -117,8 +138,9 @@ useEffect(() => {
                 <th className="px-3 py-3 font-medium text-right">Actions</th>
               </tr>
             </thead>
+            {!isLoading ? (
             <tbody>
-              {stores.map((store) => {
+              {filteredRows.map((store) => {
                 const initials = store.name
                   ?.split(" ")
                   .map((word) => word[0])
@@ -168,17 +190,49 @@ useEffect(() => {
                 )
               })}
             </tbody>
+              ): <p className="mt-4">Loading...</p>}
           </table>
         </div>
 
         <footer className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-          <p>Showing 1 to 5 of 150 results</p>
-          <div className="flex items-center gap-1">
-            <button className="rounded border border-slate-200 px-2 py-1">Prev</button>
-            <button className="rounded bg-violet-700 px-2 py-1 text-white">1</button>
-            <button className="rounded border border-slate-200 px-2 py-1">2</button>
-            <button className="rounded border border-slate-200 px-2 py-1">3</button>
-            <button className="rounded border border-slate-200 px-2 py-1">Next</button>
+            <p>
+            Showing {(page - 1) * 10 + 1} to{" "}
+            {Math.min(page * 10, pagination?.total ?? 0)} of{" "}
+            {pagination?.total ?? 0} results
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="rounded border px-3 py-1 disabled:opacity-50"
+            >
+              Prev
+            </button>
+
+            {Array.from(
+              { length: pagination?.totalPages ?? 0 },
+              (_, i) => i + 1
+            ).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => setPage(pageNum)}
+                className={`rounded px-3 py-1 ${
+                  page === pageNum
+                    ? "bg-violet-700 text-white"
+                    : "border"
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+
+            <button
+              disabled={page === pagination?.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="rounded border px-3 py-1 disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
         </footer>
       </div>

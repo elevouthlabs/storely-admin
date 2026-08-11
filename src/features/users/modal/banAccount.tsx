@@ -35,15 +35,12 @@ export const BanAccount = ({
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setReason("");
-      setNote("");
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
+  const resetForm = () => {
+    setReason("");
+    setNote("");
+  };
   const handleBan = async () => {
     if (!canSubmit) return;
 
@@ -51,8 +48,7 @@ export const BanAccount = ({
       setSubmitting(true);
       await onBan(reason.trim(), note.trim());
 
-      setReason("");
-      setNote("");
+      resetForm();
       onClose();
     } finally {
       setSubmitting(false);
@@ -64,7 +60,10 @@ export const BanAccount = ({
       className="fixed inset-[-20px] z-[9999] flex items-center justify-center bg-[#28272AB0]"
       role="dialog"
       aria-modal="true"
-      onClick={onClose}
+      onClick={()=>{
+        resetForm();
+        onClose()
+      }}
     >
       <div
         className="p-[24px] w-[448px] max-h-[550px] overflow-auto rounded-[10px] border bg-white shadow-2xl"
@@ -75,7 +74,13 @@ export const BanAccount = ({
           <h2 className="text-[20px] font-semibold text-[#47444B]">
             Ban this account?
           </h2>
-          <button onClick={onClose}>&times;</button>
+          <button
+           onClick={()=>{
+            resetForm();
+            onClose()
+          }}>
+            &times;
+          </button>
         </header>
 
         <div className="bg-[#F8FAFC] p-[12px] rounded-[10px] mb-[16px]">
@@ -117,7 +122,10 @@ export const BanAccount = ({
         <footer className="flex items-center gap-2 mt-[24px]">
           <button
             type="button"
-            onClick={onClose}
+            onClick={()=>{
+              resetForm();
+              onClose();
+            }}
             className="w-1/2 p-3 border rounded-[10px]"
           >
             Cancel

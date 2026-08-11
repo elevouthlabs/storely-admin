@@ -8,10 +8,10 @@ import { StoreDirectory } from "./features/store-directory/storeDirectoty";
 import { StoreDirectoryDetails } from "./features/store-directory/storeDiredtoryDetails";
 import { StoreDirectoryProducts } from "./features/store-directory/storeDirectoryProducts";
 import { StoreDirectoryOrders } from "./features/store-directory/storeDirectoryOrders";
-import { UserManagement } from "./features/users/users";
-import { UserDetailsProfile } from "./features/users/userDetailsProfile";
-import { UserDetailsStore } from "./features/users/userDetailsStore";
-import { UserDetailsSessions } from "./features/users/userDetailsSessions";
+// import { UserManagement } from "./features/users/users";
+// import { UserDetailsProfile } from "./features/users/userDetailsProfile";
+// import { UserDetailsStore } from "./features/users/userDetailsStore";
+// import { UserDetailsSessions } from "./features/users/userDetailsSessions";
 import { Infrastructure } from "./features/settings/infrastructure";
 import { PlatformSettings } from "./features/settings/platformSettings";
 import { AdminSettings } from "./features/settings/AdminSettings";
@@ -29,6 +29,12 @@ import ModerationDetails from "./features/moderation/moderationDetails";
 import { ForgetPass } from "./features/auth/forgetPass";
 import { CheckMail } from "./features/auth/checkMail";
 import { Receipt } from "./features/order/modal/receipt";
+import { lazy, Suspense } from 'react';
+
+const UserManagement = lazy(() => import("./features/users/users"));
+const UserDetailsProfile = lazy(() => import("./features/users/userDetailsProfile"));
+const UserDetailsStore = lazy(() => import("./features/users/userDetailsStore"));
+const UserDetailsSessions = lazy(() => import("./features/users/userDetailsSessions"));
 
 
 
@@ -37,6 +43,7 @@ function App() {
 
   return (
     <BrowserRouter>
+    <Suspense fallback="Loading...">
       <Routes>
         // Redirect root to login
         <Route path="/" element={<Navigate to="/admin-login" replace />} />
@@ -63,7 +70,7 @@ function App() {
           <Route path='user-management/:userId/stores' element={<UserDetailsStore/>} />
           <Route path='user-management/:userId/sessions' element={<UserDetailsSessions/>} />
           <Route path='risk-moderation' element={<Moderation/>} />
-          <Route path='risk-moderation/details/:itemName' element={<ModerationDetails/>} />
+          <Route path="risk-moderation/details/:storeId/:productId" element={<ModerationDetails/>} />
           <Route path='campaign' element={<Campaign/>} />
           <Route path='campaign/new' element={<NewCampaign/>} />
           <Route path='campaign/new/product' element={<Product/>} />
@@ -76,6 +83,7 @@ function App() {
           <Route path='settings/admin-team' element={<AdminSettings/>} />
         </Route>
       </Routes>
+      </Suspense>
     </BrowserRouter>
 
   )

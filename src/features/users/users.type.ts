@@ -15,16 +15,18 @@ export type User = {
 };
 
 export type Session = {
-  date: string;
+  id: string;
   device: string;
-  IP: number;
-  location: string
-}
+  ip: string;
+  location: string | null;
+  createdAt: string;
+};
 
 export type Pagination = {
   page: number;
   limit: number;
   total: number;
+  totalPages: number;
 };
 
 export type UsersResponse = {
@@ -45,15 +47,19 @@ export type SingleUserResponse = {
 export type UserSessionResponse = {
   success: boolean;
   message: string;
-  data: Session[];
+    data: {
+    sessions: Session[];
+  };
 };
 
 export type UsersState = {
   users: User[];
-  session: Session[];
+  data: {
+    sessions: Session[];
+  };
   user: User | null;
 
-  pagination: Pagination;
+  pagination: Pagination | null;
 
   isLoading: boolean;
   isFetchingOne: boolean;

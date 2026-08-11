@@ -2,6 +2,15 @@ import { useAppDispatch, useAppSelector } from "../../hook/reduxHook";
 import { useEffect } from "react";
 import { fetchDashboardData } from "../dashboard/dashboardSlice";
 import { Icon } from "@iconify/react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 type MetricCard = {
   title: string;
@@ -108,6 +117,16 @@ const secondaryMetricCards: MetricCard[] = metrics
     ]
   : [];
 
+  const revenueData = [
+  { "date": "Mon", "revenue": 800 },
+  { "date": "Tue", "revenue": 1000 },
+  { "date": "Wed", "revenue": 1200 },
+  { "date": "Thu", "revenue": 1300 },
+  { "date": "Fri", "revenue": 1900 },
+  { "date": "Sat", "revenue": 1000 },
+  { "date": "Sun", "revenue": 1500 }
+]
+
   return (
     <section className="space-y-4">
       
@@ -188,30 +207,25 @@ const secondaryMetricCards: MetricCard[] = metrics
                 </div>
                 <p className="text-sm font-semibold text-slate-700">N45.0m</p>
               </div>
+              
+                <ResponsiveContainer width="100%" height={230}>
+            <LineChart data={revenueData}>
+              <CartesianGrid strokeDasharray="3 3" />
 
-              <div className="h-56 rounded-md bg-slate-50/80 p-2">
-                <svg viewBox="0 0 700 220" className="h-full w-full">
-                  <line x1="30" y1="30" x2="30" y2="190" stroke="#e2e8f0" />
-                  <line x1="30" y1="190" x2="675" y2="190" stroke="#e2e8f0" />
-                  <line x1="30" y1="150" x2="675" y2="150" stroke="#e2e8f0" strokeDasharray="4 6" />
-                  <line x1="30" y1="110" x2="675" y2="110" stroke="#e2e8f0" strokeDasharray="4 6" />
-                  <line x1="30" y1="70" x2="675" y2="70" stroke="#e2e8f0" strokeDasharray="4 6" />
-                  <polyline
-                    fill="none"
-                    stroke="#5b2db8"
-                    strokeWidth="3"
-                    points="45,146 130,139 215,134 300,140 385,122 470,125 555,108 640,114"
-                  />
-                  <circle cx="640" cy="114" r="4.5" fill="#5b2db8" />
-                  <text x="52" y="210" fontSize="10" fill="#64748b">Mon</text>
-                  <text x="138" y="210" fontSize="10" fill="#64748b">Tue</text>
-                  <text x="224" y="210" fontSize="10" fill="#64748b">Wed</text>
-                  <text x="309" y="210" fontSize="10" fill="#64748b">Thu</text>
-                  <text x="394" y="210" fontSize="10" fill="#64748b">Fri</text>
-                  <text x="479" y="210" fontSize="10" fill="#64748b">Sat</text>
-                  <text x="564" y="210" fontSize="10" fill="#64748b">Sun</text>
-                </svg>
-              </div>
+              <XAxis dataKey="date" />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#4B0082"
+                strokeWidth={3}
+              />
+            </LineChart>
+          </ResponsiveContainer>
             </article>
 
             <article className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">

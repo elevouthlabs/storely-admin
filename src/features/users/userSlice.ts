@@ -9,13 +9,16 @@ import type { RootState } from "../../store/store";
 
 const initialState: UsersState = {
   users: [],
-  session: [],
+  data: {
+    sessions: [],
+  },
   user: null,
 
   pagination: {
     page: 1,
     limit: 10,
     total: 0,
+    totalPages: 0,
   },
 
   isLoading: false,
@@ -109,16 +112,14 @@ export const fetchSessionById = createAsyncThunk<
         `${import.meta.env.VITE_API_URL}/admin/users/sessions/${userId}`,
         {
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }
       );
 
       const data: UserSessionResponse = await res.json();
-
-      console.log(data);
-      
- 
+       
       if (!res.ok) {
         return rejectWithValue(data.message);
       }
@@ -172,7 +173,7 @@ export const banUSer = createAsyncThunk(
       }
 
       return data;
-    } catch(error) {
+    } catch {
       return rejectWithValue("Failed to ban user");
     }
   }
@@ -265,7 +266,7 @@ export const sendMessage = createAsyncThunk(
     }
 
       return data;
-    } catch (error) {
+    } catch {
       return rejectWithValue("Failed to send message to user");
     }
   }
@@ -309,7 +310,7 @@ export const forcePassword = createAsyncThunk(
     }
 
       return data;
-    } catch (error) {
+    } catch {
       return rejectWithValue("Failed to reset to user password");
     }
   }
@@ -353,7 +354,7 @@ export const changlePlan = createAsyncThunk(
     }
 
       return data;
-    } catch (error) {
+    } catch {
       return rejectWithValue("Failed to change to user plan");
     }
   }
@@ -401,7 +402,7 @@ const usersSlice = createSlice({
       })
       .addCase(fetchSessionById.fulfilled, (state, action) => {
         state.isFetchingOne = false;
-        state.session = action.payload.data;
+        state.data.sessions = action.payload.data.sessions;
       })
       .addCase(fetchSessionById.rejected, (state, action) => {
         state.isFetchingOne = false;

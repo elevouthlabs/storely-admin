@@ -29,10 +29,10 @@ export const Login = () => {
     };
   return (
     <>
-      {error && (
-        <p className="text-red-500 text-sm mt-2">{error}</p>
+    <div className="py-10 h-screen bg-[#f5f5f5] flex flex-col items-center justify-center ">
+       {error && (
+        <p className="text-red-500 text-sm mb-2">{error}</p>
       )}
-    <div className="py-10 h-screen bg-[#f5f5f5] flex items-center justify-center ">
       <div className="flex flex-col
         w-[448px] max-w-lg px-10 py-12 mx-auto bg-[#ffffff] rounded-[10px] h-auto">
         <form onSubmit={handleSubmit}>

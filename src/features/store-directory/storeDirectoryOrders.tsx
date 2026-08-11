@@ -30,8 +30,6 @@ export const StoreDirectoryOrders = () => {
   const { handleVerify, handleSuspend, handleSendMessage } =
   useStoreActions(store?.id);
 
-  if (!store) return <p>Store not found</p>;
-
    useEffect(()=>{
       if(storeId){
         dispatch(fetchStoreOrders(storeId))
@@ -39,13 +37,9 @@ export const StoreDirectoryOrders = () => {
       }
   
     }, [dispatch, storeId])
-  
-    if (isFetchingOne) return <p>Loading products...</p>;
     
     if (error) return <p>{error}</p>;
-
-    console.log(orders);
-    
+    if (!store) return <p>Store not found</p>;
 
   return (
     <section className="space-y-4">
@@ -80,11 +74,12 @@ export const StoreDirectoryOrders = () => {
             </Link>
             <button className="border-b-2 border-violet-700 pb-2 font-medium text-violet-700">Orders</button>
           </div>
-
-          <div className="p-3 rounded-xl border bg-white shadow-sm">
-            <div className="overflow-x-auto bg-white">
-              <table className="min-w-full text-left text-sm">
-                <thead className="text-xs text-slate-500 bg-white">
+          {orders.length > 0 ? (
+            isFetchingOne ? <p>Loading....</p> : (
+              <div className="p-3 rounded-xl border bg-white shadow-sm">
+                <div className="overflow-x-auto bg-white">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="text-xs text-slate-500 bg-white">
                   <tr className="border-b border-slate-200">
                     <th className="px-3 py-3 font-medium">Order ID</th>
                     <th className="px-3 py-3 font-medium">Customer</th>
@@ -109,6 +104,10 @@ export const StoreDirectoryOrders = () => {
               </table>
             </div>
           </div>
+          )
+          ):(
+            <p className="text-center text-sm text-slate-500">No orders found for this store.</p>
+          )}
         </article>
 
         <StoreQuickActions

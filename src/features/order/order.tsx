@@ -22,8 +22,9 @@ const tableHeadings = ["Order ID", "Store", "Buyer", "Amount", "Status", "Date",
 const Order = () => {
   const [statusFilter, setStatusFilter] = useState<(typeof statusOptions)[number]>("All Status");
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1)
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const { orders, isLoading, error } = useAppSelector((state) => state.orders);
+  const { orders, pagination, isLoading, error } = useAppSelector((state) => state.orders);
   const token = useAppSelector((state) => state.auth.token);
   const navigate = useNavigate();
   const dispatch = useAppDispatch()
@@ -170,21 +171,42 @@ const Order = () => {
         </div>
 
         <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3 text-xs text-slate-500">
-          <p>Showing 1 to 5 of 456 results</p>
-          <div className="flex items-center gap-1">
-            <button type="button" className="rounded border border-slate-200 px-2.5 py-1 text-slate-600 hover:bg-slate-50">
+           <p>
+            Showing {(page - 1) * 10 + 1} to{" "}
+            {Math.min(page * 10, pagination?.total ?? 0)} of{" "}
+            {pagination?.total ?? 0} results
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="rounded border px-3 py-1 disabled:opacity-50"
+            >
               Prev
             </button>
-            <button type="button" className="rounded bg-slate-100 px-2.5 py-1 font-medium text-slate-700">
-              1
-            </button>
-            <button type="button" className="rounded border border-slate-200 px-2.5 py-1 text-slate-600 hover:bg-slate-50">
-              2
-            </button>
-            <button type="button" className="rounded border border-slate-200 px-2.5 py-1 text-slate-600 hover:bg-slate-50">
-              3
-            </button>
-            <button type="button" className="rounded border border-slate-200 px-2.5 py-1 text-slate-600 hover:bg-slate-50">
+
+            {Array.from(
+              { length: pagination?.totalPages ?? 0 },
+              (_, i) => i + 1
+            ).map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => setPage(pageNum)}
+                className={`rounded px-3 py-1 ${
+                  page === pageNum
+                    ? "bg-violet-700 text-white"
+                    : "border"
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+
+            <button
+              disabled={page === pagination?.totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="rounded border px-3 py-1 disabled:opacity-50"
+            >
               Next
             </button>
           </div>

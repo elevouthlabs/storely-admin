@@ -31,7 +31,7 @@ const StatCard = ({
   </div>
 );
 
-export const UserDetailsProfile = () => {
+const UserDetailsProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -54,9 +54,10 @@ export const UserDetailsProfile = () => {
   
 
   useEffect(() => {
-  if (userId) {
-    dispatch(fetchUserById(userId));
-    }
+  if(!userId) return;
+  
+  dispatch(fetchUserById(userId));
+    
   }, [dispatch, userId]);
 
   if (isFetchingOne) return <p>Loading user...</p>;
@@ -106,14 +107,12 @@ export const UserDetailsProfile = () => {
               Session
             </Link>
           </div>
-
           <div className="space-y-4 p-4">
             <div className="grid gap-3 sm:grid-cols-3">
               <StatCard label="KYC Tier" value="Verified" icon={<Icon icon="lucide:shield" />} />
               <StatCard label="BVN Status" value="Verified" icon={<Icon icon="lucide:shield-check" />} />
               <StatCard label="2FA Status" value="Enabled" icon={<Icon icon="lucide:lock" />} />
             </div>
-
             <div>
               <h2 className="text-[12px] font-semibold text-[#3b3347]">Uploaded Documents</h2>
               <div className="mt-2 rounded-[10px] border border-[#ece9f2] bg-white px-4 py-3">
@@ -214,3 +213,5 @@ export const UserDetailsProfile = () => {
     </section>
   );
 };
+
+export default UserDetailsProfile;
